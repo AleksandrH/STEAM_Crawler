@@ -58,7 +58,6 @@ namespace STEAM_Crawler
                 using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
                 {
                  
-                    // Or you can get the file content without saving it:
                     string htmlCode = client.DownloadString(result.GetAttribute("href"));
                     string strStartCriteria = "var line1=[";
                     string strEndCriteria = "g_timePriceHistoryEarliest";
