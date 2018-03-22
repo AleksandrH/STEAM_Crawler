@@ -118,6 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="tbSteamInitialLink.Text" xml:space="preserve">
-    <value>http://steamcommunity.com/market/search?q=&amp;category_730_ItemSet%5B%5D=any&amp;category_730_ProPlayer%5B%5D=any&amp;category_730_StickerCapsule%5B%5D=any&amp;category_730_TournamentTeam%5B%5D=any&amp;category_730_Weapon%5B%5D=tag_weapon_awp&amp;appid=730</value>
+    <value>http://steamcommunity.com/market/search?q=&amp;category_730_ItemSet%5B%5D=any&amp;category_730_ProPlayer%5B%5D=any&amp;category_730_StickerCapsule%5B%5D=any&amp;category_730_TournamentTeam%5B%5D=any&amp;category_730_Weapon%5B%5D=tag_weapon_awp&amp;appid=730#p1_name_asc</value>
   </data>
 </root>
