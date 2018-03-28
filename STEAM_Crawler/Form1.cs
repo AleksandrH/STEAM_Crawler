@@ -1,17 +1,13 @@
-﻿using System;
+﻿using ClosedXML.Excel;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using ClosedXML.Excel;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Support.UI;
 
 namespace STEAM_Crawler
 {
@@ -20,83 +16,57 @@ namespace STEAM_Crawler
         IWebDriver browser;
         public static int PAGECOUNT;
         public static DataTable dtDgv;
+        public BackgroundWorker myWorker = new BackgroundWorker();
         public Form1()
         {
             InitializeComponent();
+            myWorker.DoWork += new DoWorkEventHandler(myWorker_DoWork);
+            myWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_RunWorkerCompleted);
+            myWorker.ProgressChanged += new ProgressChangedEventHandler(myWorker_ProgressChanged);
+            myWorker.WorkerReportsProgress = true;
+            myWorker.WorkerSupportsCancellation = true;
+
+
             dtDgv = new DataTable("dtdgv");
 
-            dtDgv.Columns.Add("ITEM_NAME",typeof(string));
-            dtDgv.Columns.Add( "ITEM_LINK", typeof(string));
-            dtDgv.Columns.Add( "ITEM_AT_MRKT", typeof(string));
-            dtDgv.Columns.Add( "ITEM_MAX_PRICE", typeof(double));
-            dtDgv.Columns.Add( "ITEM_MIN_PRICE", typeof(double));
-            dtDgv.Columns.Add( "ITEM_AVG_PRICE", typeof(double));
+            dtDgv.Columns.Add("ITEM_NAME", typeof(string));
+            dtDgv.Columns.Add("ITEM_LINK", typeof(string));
+            dtDgv.Columns.Add("ITEM_AT_MRKT", typeof(string));
+            dtDgv.Columns.Add("ITEM_MAX_PRICE", typeof(double));
+            dtDgv.Columns.Add("ITEM_MIN_PRICE", typeof(double));
+            dtDgv.Columns.Add("ITEM_AVG_PRICE", typeof(double));
             dtDgv.Columns.Add("ITEM_AVG_SALES", typeof(double));
             dataGridView1.DataSource = dtDgv;
 
-
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
         }
 
-        private void btnGetStat_Click(object sender, EventArgs e)
+        protected void myWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            browser = new OpenQA.Selenium.Chrome.ChromeDriver();
-            browser.Navigate().GoToUrl(this.tbSteamInitialLink.Text);
-            WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
-            ww.Until(ExpectedConditions.ElementIsVisible(By.ClassName("market_paging_pagelink")));
-            List<IWebElement> Pages = browser.FindElements(By.ClassName("market_paging_pagelink")).ToList();
-            int.TryParse(Pages.Last().Text, out PAGECOUNT);
-            lblPagesCount.Text = PAGECOUNT.ToString();
-            
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            browser.Quit();
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            var selector = By.Id("searchResults_btn_next");
-            WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
-            ww.Until(ExpectedConditions.ElementIsVisible(selector));
-            browser.FindElement(selector).Click();
-            //searchResults_btn_next
-        }
-
-        public struct Operation
-        {
-            public DateTime OperationDate;
-            
-            public Double OperationPrice;
-            public int OperationAmount;
-        }
-
-        private void btnReadList_Click(object sender, EventArgs e)
-        {
-            //market_listing_row market_recent_listing_row market_listing_searchresult
-
+            BackgroundWorker sendingWorker = (BackgroundWorker)sender;
             //market_listing_row_link
             for (int iPage = 1; iPage < PAGECOUNT; iPage++)
             {
 
-                this.lblPagesCount.Text = $@"Page [{iPage}] of [{PAGECOUNT}]";
+                //this.lblPagesCount.Text = $@"Page [{iPage}] of [{PAGECOUNT}]";
 
                 var selector = By.ClassName("market_listing_row_link");
                 WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
                 ww.Until(ExpectedConditions.ElementIsVisible(selector));
 
                 List<IWebElement> results = browser.FindElements(By.ClassName("market_listing_row_link")).ToList();
+                int rInd = 0;
                 foreach (IWebElement result in results)
                 {
 
-                    //try
-                    //{
+                    if (sendingWorker.CancellationPending)
+                    {
                         var item = result.FindElement(By.ClassName("market_listing_searchresult"));
                         var itemName = item.FindElement(By.ClassName("market_listing_item_name_block"));
                         var sName = itemName.FindElement(By.ClassName("market_listing_item_name"));
                         var qtyItem = result.FindElement(By.ClassName("market_listing_num_listings_qty"));
-                    
+
                         List<Operation> Operations = new List<Operation>();
                         using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
                         {
@@ -126,13 +96,13 @@ namespace STEAM_Crawler
                                 tmpAmount = tmpAmount.Substring(1, tmpAmount.IndexOf("\"", 2) - 1);
                                 int.TryParse(tmpAmount, out operation.OperationAmount);
                                 tmpAmount = oneHourStat[0];
-                                tmpAmount = tmpAmount.Substring(tmpAmount.IndexOf("\"")+1, tmpAmount.IndexOf(":"))+"00";
+                                tmpAmount = tmpAmount.Substring(tmpAmount.IndexOf("\"") + 1, tmpAmount.IndexOf(":")) + "00";
                                 string[] dataParts = tmpAmount.Split(new string[] { " " }, StringSplitOptions.None);
-                                if (dataParts[dataParts.Length-1].Length == 4) dataParts[dataParts.Length-1] = "0" + dataParts[dataParts.Length-1];
-                            tmpAmount = string.Join(" ", dataParts);
-                            //operation.OperationDate = DateTime.Parse(tmpAmount, new CultureInfo("en-US", true));
-                            operation.OperationDate = DateTime.Parse( tmpAmount); 
-                            if (operation.OperationDate.AddMonths(1) > DateTime.Now)
+                                if (dataParts[dataParts.Length - 1].Length == 4) dataParts[dataParts.Length - 1] = "0" + dataParts[dataParts.Length - 1];
+                                tmpAmount = string.Join(" ", dataParts);
+                                //operation.OperationDate = DateTime.Parse(tmpAmount, new CultureInfo("en-US", true));
+                                operation.OperationDate = DateTime.Parse(tmpAmount);
+                                if (operation.OperationDate.AddMonths(1) > DateTime.Now)
                                 {
                                     Operations.Add(operation);
                                 }
@@ -163,52 +133,125 @@ namespace STEAM_Crawler
                         gunAvgPrice = (gunMaxPrice + gunMinPrice) / 2;
                         gunSalesPcs = gunSalesPcs / daysCount;
 
-                    /*
-                     * dtDgv.Columns.Add("ITEM_NAME",typeof(string));
-        dtDgv.Columns.Add( "ITEM_LINK", typeof(string));
-        dtDgv.Columns.Add( "ITEM_AT_MRKT", typeof(int));
-        dtDgv.Columns.Add( "ITEM_MAX_PRICE", typeof(double));
-        dtDgv.Columns.Add( "ITEM_MIN_PRICE", typeof(double));
-        dtDgv.Columns.Add( "ITEM_AVG_PRICE", typeof(double));
-        dtDgv.Columns.Add("ITEM_AVG_SALES", typeof(double));
-                     * */
-                    DataRow myRow = dtDgv.NewRow();
-                    myRow[0] = sName.Text;
-                    myRow[1] = result.GetAttribute("href");
-                    myRow[2] = qtyItem.Text;
-                    myRow[3] = gunMaxPrice;
-                    myRow[4] = gunMinPrice;
-                    myRow[5] = gunAvgPrice;
-                    myRow[6] = gunSalesPcs;
+                        DataRow myRow = dtDgv.NewRow();
+                        myRow[0] = sName.Text;
+                        myRow[1] = result.GetAttribute("href");
+                        myRow[2] = qtyItem.Text;
+                        myRow[3] = gunMaxPrice;
+                        myRow[4] = gunMinPrice;
+                        myRow[5] = gunAvgPrice;
+                        myRow[6] = gunSalesPcs;
 
-                    dtDgv.Rows.Add(myRow);
-                    dtDgv.AcceptChanges();
-                    
-                    //this.dataGridView1.Rows.Add(sName.Text, result.GetAttribute("href"), qtyItem.Text, gunMaxPrice, gunMinPrice, gunAvgPrice, gunSalesPcs);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                      //  MessageBox.Show(ex.Message);
-                       // this.dataGridView1.Rows.Add(sName.Text, result.GetAttribute("href"), ex.Message);
-                    //}
+                        dtDgv.Rows.Add(myRow);
+                        dtDgv.AcceptChanges();
 
-                    
+
+
+                        System.Threading.Thread.Sleep(60000);
+                        selector = By.Id("searchResults_btn_next");
+                        ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
+                        ww.Until(ExpectedConditions.ElementIsVisible(selector));
+                        browser.FindElement(selector).Click();
+                        sendingWorker.ReportProgress(rInd/results.Count*100);
+                    }
+                    else
+                    {
+                        e.Cancel = true;
+                        break;
+                    }
+                    e.Result = $"elem {++rInd} of {results.Count}";
                 }
-                System.Threading.Thread.Sleep(60000);
-                selector = By.Id("searchResults_btn_next");
-                ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
-                ww.Until(ExpectedConditions.ElementIsVisible(selector));
-                browser.FindElement(selector).Click();
+                e.Result = $"{iPage} of {PAGECOUNT} scanned";
             }
         }
+        protected void myWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (!e.Cancelled &&
+                e.Error == null)//Check if the worker has been canceled or if an error occurred
+            {
+                string result = (string)e.Result;//Get the result from the background thread
+                dataGridView1.Update();
+                
+                lblStatus.Text = "Done";
+            }
+            else if (e.Cancelled)
+            {
+                lblStatus.Text = "User Canceled";
+            }
+            else
+            {
+                lblStatus.Text = "An error has occurred";
+            }
+            btnReadList.Enabled = true;//Re enable the start button
+        }
+        protected void myWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            lblStatus.Text = string.Format("Counting number: {0}...", e.ProgressPercentage);
+        }
 
-        private void button1_Click_1(object sender, EventArgs e)
+
+
+
+        private void btnStartBrowser_Click(object sender, EventArgs e)
+        {
+            browser = new OpenQA.Selenium.Chrome.ChromeDriver();
+            browser.Navigate().GoToUrl(this.tbSteamInitialLink.Text);
+            WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
+            ww.Until(ExpectedConditions.ElementIsVisible(By.ClassName("market_paging_pagelink")));
+            List<IWebElement> Pages = browser.FindElements(By.ClassName("market_paging_pagelink")).ToList();
+            int.TryParse(Pages.Last().Text, out PAGECOUNT);
+            lblPagesCount.Text = PAGECOUNT.ToString();
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            browser.Quit();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var selector = By.Id("searchResults_btn_next");
+            /*WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
+            ww.Until(ExpectedConditions.ElementIsVisible(selector));*/
+
+            WaitHelper.WaitUntil(browser, 10,
+#pragma warning disable CS0618 // Тип или член устарел
+                ExpectedConditions.ElementExists(selector),
+#pragma warning restore CS0618 // Тип или член устарел
+                "button X not found");
+            browser.FindElement(selector).Click();
+            //searchResults_btn_next
+        }
+
+        public struct Operation
+        {
+            public DateTime OperationDate;
+
+            public Double OperationPrice;
+            public int OperationAmount;
+        }
+
+        private void btnReadList_Click(object sender, EventArgs e)
+        {
+            //market_listing_row market_recent_listing_row market_listing_searchresult
+
+            if (!myWorker.IsBusy)
+            {
+                btnReadList.Enabled = false;
+                myWorker.RunWorkerAsync();
+            }
+
+
+        }
+
+        private void btnSaveXLS_Click(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog();
             sfd.Filter = "Excel files (*.xlsx)|*.xlsx";
             sfd.FilterIndex = 1;
             sfd.DefaultExt = "xlsx";
-            
+
 
             if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -217,9 +260,9 @@ namespace STEAM_Crawler
                     DataTable dt = (DataTable)dataGridView1.DataSource;
                     wb.Worksheets.Add(dt, "ExportedData");
                     wb.SaveAs(sfd.FileName);
-                    MessageBox.Show("Експорт завершений", 
-                                    "Експорт результатів", 
-                                    MessageBoxButtons.OK, 
+                    MessageBox.Show("Експорт завершений",
+                                    "Експорт результатів",
+                                    MessageBoxButtons.OK,
                                     MessageBoxIcon.Information);
                 }
             }

@@ -120,4 +120,7 @@
   <data name="tbSteamInitialLink.Text" xml:space="preserve">
     <value>http://steamcommunity.com/market/search?q=&amp;category_730_ItemSet%5B%5D=any&amp;category_730_ProPlayer%5B%5D=any&amp;category_730_StickerCapsule%5B%5D=any&amp;category_730_TournamentTeam%5B%5D=any&amp;category_730_Weapon%5B%5D=tag_weapon_awp&amp;appid=730#p1_name_asc</value>
   </data>
+  <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
 </root>

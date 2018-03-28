@@ -37,7 +37,12 @@
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.btnReadList = new System.Windows.Forms.Button();
             this.btnSaveXLS = new System.Windows.Forms.Button();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.lblStatus = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            this.panel1.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // tbSteamInitialLink
@@ -59,12 +64,12 @@
             this.btnStartBrowser.TabIndex = 1;
             this.btnStartBrowser.Text = "Open Browser";
             this.btnStartBrowser.UseVisualStyleBackColor = true;
-            this.btnStartBrowser.Click += new System.EventHandler(this.btnGetStat_Click);
+            this.btnStartBrowser.Click += new System.EventHandler(this.btnStartBrowser_Click);
             // 
             // btnStopCrawler
             // 
             this.btnStopCrawler.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnStopCrawler.Location = new System.Drawing.Point(940, 306);
+            this.btnStopCrawler.Location = new System.Drawing.Point(940, 348);
             this.btnStopCrawler.Name = "btnStopCrawler";
             this.btnStopCrawler.Size = new System.Drawing.Size(75, 23);
             this.btnStopCrawler.TabIndex = 2;
@@ -98,9 +103,9 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.Location = new System.Drawing.Point(12, 106);
+            this.dataGridView1.Location = new System.Drawing.Point(3, 3);
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(1009, 194);
+            this.dataGridView1.Size = new System.Drawing.Size(1003, 238);
             this.dataGridView1.TabIndex = 5;
             // 
             // btnReadList
@@ -121,25 +126,52 @@
             this.btnSaveXLS.TabIndex = 7;
             this.btnSaveXLS.Text = "Save XLSX";
             this.btnSaveXLS.UseVisualStyleBackColor = true;
-            this.btnSaveXLS.Click += new System.EventHandler(this.button1_Click_1);
+            this.btnSaveXLS.Click += new System.EventHandler(this.btnSaveXLS_Click);
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.dataGridView1);
+            this.panel1.Location = new System.Drawing.Point(12, 106);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(1009, 244);
+            this.panel1.TabIndex = 8;
+            // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.lblStatus});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 356);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(1033, 22);
+            this.statusStrip1.TabIndex = 9;
+            this.statusStrip1.Text = "statusStrip1";
+            // 
+            // lblStatus
+            // 
+            this.lblStatus.Name = "lblStatus";
+            this.lblStatus.Size = new System.Drawing.Size(0, 17);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1033, 336);
+            this.ClientSize = new System.Drawing.Size(1033, 378);
+            this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnSaveXLS);
             this.Controls.Add(this.btnReadList);
-            this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.GotoNextPage);
             this.Controls.Add(this.lblPagesCount);
             this.Controls.Add(this.btnStopCrawler);
             this.Controls.Add(this.btnStartBrowser);
             this.Controls.Add(this.tbSteamInitialLink);
+            this.Controls.Add(this.panel1);
             this.MinimumSize = new System.Drawing.Size(600, 300);
             this.Name = "Form1";
             this.Text = "STEAM CRAWLER";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            this.panel1.ResumeLayout(false);
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -155,6 +187,9 @@
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Button btnReadList;
         private System.Windows.Forms.Button btnSaveXLS;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel lblStatus;
     }
 }
 
