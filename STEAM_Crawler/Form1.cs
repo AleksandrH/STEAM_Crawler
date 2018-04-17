@@ -16,17 +16,19 @@ namespace STEAM_Crawler
         IWebDriver browser;
         public static int PAGECOUNT;
         public static DataTable dtDgv;
+        public static BindingSource source = new BindingSource();
         public BackgroundWorker myWorker = new BackgroundWorker();
         public Form1()
         {
             InitializeComponent();
-            myWorker.DoWork += new DoWorkEventHandler(myWorker_DoWork);
-            myWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(myWorker_RunWorkerCompleted);
-            myWorker.ProgressChanged += new ProgressChangedEventHandler(myWorker_ProgressChanged);
+
+            myWorker.DoWork += myWorker_DoWork;
+            myWorker.RunWorkerCompleted += myWorker_RunWorkerCompleted;
+            myWorker.ProgressChanged += myWorker_ProgressChanged;
             myWorker.WorkerReportsProgress = true;
             myWorker.WorkerSupportsCancellation = true;
 
-
+            
             dtDgv = new DataTable("dtdgv");
 
             dtDgv.Columns.Add("ITEM_NAME", typeof(string));
@@ -36,7 +38,8 @@ namespace STEAM_Crawler
             dtDgv.Columns.Add("ITEM_MIN_PRICE", typeof(double));
             dtDgv.Columns.Add("ITEM_AVG_PRICE", typeof(double));
             dtDgv.Columns.Add("ITEM_AVG_SALES", typeof(double));
-            dataGridView1.DataSource = dtDgv;
+            source.DataSource = dtDgv;
+            dataGridView1.DataSource = source;
 
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
@@ -46,122 +49,139 @@ namespace STEAM_Crawler
         {
             BackgroundWorker sendingWorker = (BackgroundWorker)sender;
             //market_listing_row_link
-            for (int iPage = 1; iPage < PAGECOUNT; iPage++)
+            for (int iPage = 1; iPage <= PAGECOUNT; iPage++)
             {
-
-                //this.lblPagesCount.Text = $@"Page [{iPage}] of [{PAGECOUNT}]";
 
                 var selector = By.ClassName("market_listing_row_link");
                 WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
                 ww.Until(ExpectedConditions.ElementIsVisible(selector));
 
                 List<IWebElement> results = browser.FindElements(By.ClassName("market_listing_row_link")).ToList();
-                int rInd = 0;
+                int rInd = 1;
                 foreach (IWebElement result in results)
                 {
 
-                    if (sendingWorker.CancellationPending)
+                    if (!sendingWorker.CancellationPending)
                     {
-                        var item = result.FindElement(By.ClassName("market_listing_searchresult"));
-                        var itemName = item.FindElement(By.ClassName("market_listing_item_name_block"));
-                        var sName = itemName.FindElement(By.ClassName("market_listing_item_name"));
-                        var qtyItem = result.FindElement(By.ClassName("market_listing_num_listings_qty"));
-
-                        List<Operation> Operations = new List<Operation>();
-                        using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
+                        try
                         {
 
-                            string htmlCode = client.DownloadString(result.GetAttribute("href"));
-                            string strStartCriteria = "var line1=[";
-                            string strEndCriteria = "g_timePriceHistoryEarliest";
-                            int startPosition = htmlCode.IndexOf(strStartCriteria);
-                            int endPosition = htmlCode.IndexOf(strEndCriteria, startPosition);
-                            int substrLength = endPosition - (strStartCriteria.Length + startPosition);
-                            string stat = htmlCode.Substring((startPosition + strStartCriteria.Length), substrLength);
-                            stat = stat.Replace("\t", "").Replace("\n", "");
-                            string[] cells = stat.Split(new string[] { "],[" }, StringSplitOptions.None);
 
-                            Array.Reverse(cells);
+                            IWebElement item = result.FindElement(By.ClassName("market_listing_searchresult"));
+                            IWebElement itemName = item.FindElement(By.ClassName("market_listing_item_name_block"));
+                            IWebElement sName = itemName.FindElement(By.ClassName("market_listing_item_name"));
+                            IWebElement qtyItem = result.FindElement(By.ClassName("market_listing_num_listings_qty"));
 
-                            int newArraySize = 30 * 24 > cells.Length ? cells.Length : 30 * 24;
-                            string[] lastMonthStat = new string[newArraySize];
-                            Array.Copy(cells, 0, lastMonthStat, 0, newArraySize);
-
-                            Operation operation = new Operation();
-                            foreach (string hourStat in lastMonthStat)
+                            List<Operation> Operations = new List<Operation>();
+                            using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
                             {
-                                string[] oneHourStat = hourStat.Split(',');
-                                Double.TryParse(oneHourStat[1].Replace('.', ','), out operation.OperationPrice);
-                                string tmpAmount = oneHourStat[2];
-                                tmpAmount = tmpAmount.Substring(1, tmpAmount.IndexOf("\"", 2) - 1);
-                                int.TryParse(tmpAmount, out operation.OperationAmount);
-                                tmpAmount = oneHourStat[0];
-                                tmpAmount = tmpAmount.Substring(tmpAmount.IndexOf("\"") + 1, tmpAmount.IndexOf(":")) + "00";
-                                string[] dataParts = tmpAmount.Split(new string[] { " " }, StringSplitOptions.None);
-                                if (dataParts[dataParts.Length - 1].Length == 4) dataParts[dataParts.Length - 1] = "0" + dataParts[dataParts.Length - 1];
-                                tmpAmount = string.Join(" ", dataParts);
-                                //operation.OperationDate = DateTime.Parse(tmpAmount, new CultureInfo("en-US", true));
-                                operation.OperationDate = DateTime.Parse(tmpAmount);
-                                if (operation.OperationDate.AddMonths(1) > DateTime.Now)
+
+                                string htmlCode = client.DownloadString(result.GetAttribute("href"));
+                                string strStartCriteria = "var line1=[";
+                                string strEndCriteria = "g_timePriceHistoryEarliest";
+                                int startPosition = htmlCode.IndexOf(strStartCriteria);
+                                int endPosition = htmlCode.IndexOf(strEndCriteria, startPosition);
+                                int substrLength = endPosition - (strStartCriteria.Length + startPosition);
+                                string stat = htmlCode.Substring((startPosition + strStartCriteria.Length), substrLength);
+                                stat = stat.Replace("\t", "").Replace("\n", "");
+                                string[] cells = stat.Split(new string[] { "],[" }, StringSplitOptions.None);
+
+                                Array.Reverse(cells);
+
+                                int newArraySize = 30 * 24 > cells.Length ? cells.Length : 30 * 24;
+                                string[] lastMonthStat = new string[newArraySize];
+                                Array.Copy(cells, 0, lastMonthStat, 0, newArraySize);
+
+                                Operation operation = new Operation();
+                                foreach (string hourStat in lastMonthStat)
                                 {
-                                    Operations.Add(operation);
+                                    string[] oneHourStat = hourStat.Split(',');
+                                    Double.TryParse(oneHourStat[1].Replace('.', ','), out operation.OperationPrice);
+                                    string tmpAmount = oneHourStat[2];
+                                    tmpAmount = tmpAmount.Substring(1, tmpAmount.IndexOf("\"", 2) - 1);
+                                    int.TryParse(tmpAmount, out operation.OperationAmount);
+                                    tmpAmount = oneHourStat[0];
+                                    tmpAmount = tmpAmount.Substring(tmpAmount.IndexOf("\"") + 1, tmpAmount.IndexOf(":")) + "00";
+                                    string[] dataParts = tmpAmount.Split(new string[] { " " }, StringSplitOptions.None);
+                                    if (dataParts[dataParts.Length - 1].Length == 4) dataParts[dataParts.Length - 1] = "0" + dataParts[dataParts.Length - 1];
+                                    tmpAmount = string.Join(" ", dataParts);
+                                    //operation.OperationDate = DateTime.Parse(tmpAmount, new CultureInfo("en-US", true));
+                                    operation.OperationDate = DateTime.Parse(tmpAmount);
+                                    if (operation.OperationDate.AddMonths(1) > DateTime.Now)
+                                    {
+                                        Operations.Add(operation);
+                                    }
                                 }
+                                operation.OperationAmount = 0;
+                                //...
                             }
-                            operation.OperationAmount = 0;
-                            //...
-                        }
-                        double gunMaxPrice = Operations[0].OperationPrice;
-                        double gunMinPrice = Operations[0].OperationPrice;
-                        double gunAvgPrice = 0;
-                        int gunSalesPcs = 0;
-                        int daysCount = 1;
-                        Operation prevOp = Operations[0];
-                        foreach (var operation in Operations)
-                        {
-                            if (operation.OperationPrice > gunMaxPrice)
-                                gunMaxPrice = operation.OperationPrice;
-                            if (operation.OperationPrice < gunMinPrice)
-                                gunMinPrice = operation.OperationPrice;
-
-                            if (prevOp.OperationDate.Day != operation.OperationDate.Day)
+                            double gunMaxPrice = Operations[0].OperationPrice;
+                            double gunMinPrice = Operations[0].OperationPrice;
+                            double gunAvgPrice = 0;
+                            int gunSalesPcs = 0;
+                            int daysCount = 1;
+                            Operation prevOp = Operations[0];
+                            foreach (var operation in Operations)
                             {
-                                daysCount++;
-                                prevOp = operation;
+                                if (operation.OperationPrice > gunMaxPrice)
+                                    gunMaxPrice = operation.OperationPrice;
+                                if (operation.OperationPrice < gunMinPrice)
+                                    gunMinPrice = operation.OperationPrice;
+
+                                if (prevOp.OperationDate.Day != operation.OperationDate.Day)
+                                {
+                                    daysCount++;
+                                    prevOp = operation;
+                                }
+                                gunSalesPcs += operation.OperationAmount;
                             }
-                            gunSalesPcs += operation.OperationAmount;
+                            gunAvgPrice = (gunMaxPrice + gunMinPrice) / 2;
+                            gunSalesPcs = gunSalesPcs / daysCount;
+
+                            DataRow myRow = dtDgv.NewRow();
+                            string isName = sName.Text;
+                            string link = result.GetAttribute("href");
+                            string iiQty = qtyItem.Text;
+                            myRow[0] = isName;
+                            myRow[1] = link;
+                            myRow[2] = iiQty;
+                            myRow[3] = gunMaxPrice;
+                            myRow[4] = gunMinPrice;
+                            myRow[5] = gunAvgPrice;
+                            myRow[6] = gunSalesPcs;
+
+                            dtDgv.Rows.Add(myRow);
+                            dtDgv.AcceptChanges();
+                            
+                            //source.ResetBindings(false);
+                            
+
                         }
-                        gunAvgPrice = (gunMaxPrice + gunMinPrice) / 2;
-                        gunSalesPcs = gunSalesPcs / daysCount;
+                        catch (Exception)
+                        {
 
-                        DataRow myRow = dtDgv.NewRow();
-                        myRow[0] = sName.Text;
-                        myRow[1] = result.GetAttribute("href");
-                        myRow[2] = qtyItem.Text;
-                        myRow[3] = gunMaxPrice;
-                        myRow[4] = gunMinPrice;
-                        myRow[5] = gunAvgPrice;
-                        myRow[6] = gunSalesPcs;
-
-                        dtDgv.Rows.Add(myRow);
-                        dtDgv.AcceptChanges();
+                            //throw;
+                        }
 
 
-
-                        System.Threading.Thread.Sleep(60000);
-                        selector = By.Id("searchResults_btn_next");
-                        ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
-                        ww.Until(ExpectedConditions.ElementIsVisible(selector));
-                        browser.FindElement(selector).Click();
-                        sendingWorker.ReportProgress(rInd/results.Count*100);
                     }
                     else
                     {
                         e.Cancel = true;
                         break;
                     }
-                    e.Result = $"elem {++rInd} of {results.Count}";
+                    e.Result = $"elem {rInd} of {results.Count}";
+                    rInd++;
                 }
                 e.Result = $"{iPage} of {PAGECOUNT} scanned";
+
+                System.Threading.Thread.Sleep(500);
+                selector = By.Id("searchResults_btn_next");
+                ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
+                ww.Until(ExpectedConditions.ElementIsVisible(selector));
+                browser.FindElement(selector).Click();
+
+                sendingWorker.ReportProgress(iPage);
             }
         }
         protected void myWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -169,9 +189,10 @@ namespace STEAM_Crawler
             if (!e.Cancelled &&
                 e.Error == null)//Check if the worker has been canceled or if an error occurred
             {
-                string result = (string)e.Result;//Get the result from the background thread
+
                 dataGridView1.Update();
-                
+                dataGridView1.Refresh();
+
                 lblStatus.Text = "Done";
             }
             else if (e.Cancelled)
@@ -186,6 +207,7 @@ namespace STEAM_Crawler
         }
         protected void myWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
+            dataGridView1.Refresh();
             lblStatus.Text = string.Format("Counting number: {0}...", e.ProgressPercentage);
         }
 
@@ -201,7 +223,7 @@ namespace STEAM_Crawler
             List<IWebElement> Pages = browser.FindElements(By.ClassName("market_paging_pagelink")).ToList();
             int.TryParse(Pages.Last().Text, out PAGECOUNT);
             lblPagesCount.Text = PAGECOUNT.ToString();
-
+            lblStatus.Text = string.Empty;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -238,8 +260,10 @@ namespace STEAM_Crawler
 
             if (!myWorker.IsBusy)
             {
+                lblStatus.Text = string.Empty;
+
                 btnReadList.Enabled = false;
-                myWorker.RunWorkerAsync();
+                myWorker.RunWorkerAsync(1);
             }
 
 
@@ -257,7 +281,7 @@ namespace STEAM_Crawler
             {
                 using (XLWorkbook wb = new XLWorkbook())
                 {
-                    DataTable dt = (DataTable)dataGridView1.DataSource;
+                    DataTable dt = (DataTable)dtDgv;
                     wb.Worksheets.Add(dt, "ExportedData");
                     wb.SaveAs(sfd.FileName);
                     MessageBox.Show("Експорт завершений",

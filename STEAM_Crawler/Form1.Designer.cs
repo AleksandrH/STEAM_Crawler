@@ -69,7 +69,7 @@
             // btnStopCrawler
             // 
             this.btnStopCrawler.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnStopCrawler.Location = new System.Drawing.Point(940, 348);
+            this.btnStopCrawler.Location = new System.Drawing.Point(943, 356);
             this.btnStopCrawler.Name = "btnStopCrawler";
             this.btnStopCrawler.Size = new System.Drawing.Size(75, 23);
             this.btnStopCrawler.TabIndex = 2;
@@ -130,6 +130,9 @@
             // 
             // panel1
             // 
+            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.Controls.Add(this.dataGridView1);
             this.panel1.Location = new System.Drawing.Point(12, 106);
             this.panel1.Name = "panel1";
@@ -140,7 +143,7 @@
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lblStatus});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 356);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 378);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(1033, 22);
             this.statusStrip1.TabIndex = 9;
@@ -155,7 +158,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1033, 378);
+            this.ClientSize = new System.Drawing.Size(1033, 400);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnSaveXLS);
             this.Controls.Add(this.btnReadList);
