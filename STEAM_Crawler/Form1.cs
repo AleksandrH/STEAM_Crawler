@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Windows.Forms;
@@ -15,7 +17,7 @@ namespace STEAM_Crawler
     {
         IWebDriver browser;
         public static int PAGECOUNT;
-        public static DataTable dtDgv;
+        public static DataTable dataTableForDataGrid;
         public static BindingSource source = new BindingSource();
         public BackgroundWorker myWorker = new BackgroundWorker();
         public Form1()
@@ -28,17 +30,17 @@ namespace STEAM_Crawler
             myWorker.WorkerReportsProgress = true;
             myWorker.WorkerSupportsCancellation = true;
 
-            
-            dtDgv = new DataTable("dtdgv");
 
-            dtDgv.Columns.Add("ITEM_NAME", typeof(string));
-            dtDgv.Columns.Add("ITEM_LINK", typeof(string));
-            dtDgv.Columns.Add("ITEM_AT_MRKT", typeof(string));
-            dtDgv.Columns.Add("ITEM_MAX_PRICE", typeof(double));
-            dtDgv.Columns.Add("ITEM_MIN_PRICE", typeof(double));
-            dtDgv.Columns.Add("ITEM_AVG_PRICE", typeof(double));
-            dtDgv.Columns.Add("ITEM_AVG_SALES", typeof(double));
-            source.DataSource = dtDgv;
+            dataTableForDataGrid = new DataTable("dtdgv");
+
+            dataTableForDataGrid.Columns.Add("ITEM_NAME", typeof(string));
+            dataTableForDataGrid.Columns.Add("ITEM_LINK", typeof(string));
+            dataTableForDataGrid.Columns.Add("ITEM_AT_MRKT", typeof(string));
+            dataTableForDataGrid.Columns.Add("ITEM_MAX_PRICE", typeof(double));
+            dataTableForDataGrid.Columns.Add("ITEM_MIN_PRICE", typeof(double));
+            dataTableForDataGrid.Columns.Add("ITEM_AVG_PRICE", typeof(double));
+            dataTableForDataGrid.Columns.Add("ITEM_AVG_SALES", typeof(double));
+            source.DataSource = dataTableForDataGrid;
             dataGridView1.DataSource = source;
 
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -51,32 +53,61 @@ namespace STEAM_Crawler
             //market_listing_row_link
             for (int iPage = 1; iPage <= PAGECOUNT; iPage++)
             {
-
+                browser.Navigate().Refresh();
                 var selector = By.ClassName("market_listing_row_link");
-                WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
+                WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(15));
                 ww.Until(ExpectedConditions.ElementIsVisible(selector));
 
-                List<IWebElement> results = browser.FindElements(By.ClassName("market_listing_row_link")).ToList();
-                int rInd = 1;
+                List<IWebElement> results =
+                        browser.FindElements(By.ClassName("market_listing_row_link")).ToList();
+                int resultIndex = 1; //tmp var for result count
                 foreach (IWebElement result in results)
                 {
 
                     if (!sendingWorker.CancellationPending)
                     {
-                        try
+                        //try
+                        //{
+                        IWebElement item;
+                        IWebElement itemName;
+                        IWebElement sName;
+                        IWebElement qtyItem;
+                        string isName = string.Empty;
+                        string iiQty = string.Empty;
+                        string HTMLpath = result.GetAttribute("href").ToString();
+                        if (HTMLpath == string.Empty)
+                        {
+                            break;
+                        }
+                        for (int i = 0; i < 5; i++)
                         {
 
-
-                            IWebElement item = result.FindElement(By.ClassName("market_listing_searchresult"));
-                            IWebElement itemName = item.FindElement(By.ClassName("market_listing_item_name_block"));
-                            IWebElement sName = itemName.FindElement(By.ClassName("market_listing_item_name"));
-                            IWebElement qtyItem = result.FindElement(By.ClassName("market_listing_num_listings_qty"));
-
-                            List<Operation> Operations = new List<Operation>();
-                            using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
+                            try
                             {
+                                item = result.FindElement(By.ClassName("market_listing_searchresult"));
+                                itemName = item.FindElement(By.ClassName("market_listing_item_name_block"));
+                                sName = itemName.FindElement(By.ClassName("market_listing_item_name"));
+                                qtyItem = result.FindElement(By.ClassName("market_listing_num_listings_qty"));
 
-                                string htmlCode = client.DownloadString(result.GetAttribute("href"));
+                                isName = sName.Text;
+                                iiQty = qtyItem.Text;
+                                break;
+                            }
+                            catch (Exception eX)
+                            {
+                                Debug.WriteLine(eX.Message);
+                            }
+
+                        }
+
+                        List<Operation> Operations = new List<Operation>();
+                        System.Threading.Thread.Sleep(30000); //to avoid microban
+                        HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(HTMLpath);
+                        using (Stream stream = request.GetResponse().GetResponseStream())
+                        {
+                            using (StreamReader reader = new StreamReader(stream))
+                            {
+                                string htmlCode = reader.ReadToEnd();
                                 string strStartCriteria = "var line1=[";
                                 string strEndCriteria = "g_timePriceHistoryEarliest";
                                 int startPosition = htmlCode.IndexOf(strStartCriteria);
@@ -103,9 +134,11 @@ namespace STEAM_Crawler
                                     tmpAmount = oneHourStat[0];
                                     tmpAmount = tmpAmount.Substring(tmpAmount.IndexOf("\"") + 1, tmpAmount.IndexOf(":")) + "00";
                                     string[] dataParts = tmpAmount.Split(new string[] { " " }, StringSplitOptions.None);
-                                    if (dataParts[dataParts.Length - 1].Length == 4) dataParts[dataParts.Length - 1] = "0" + dataParts[dataParts.Length - 1];
+                                    if (dataParts[dataParts.Length - 1].Length == 4)
+                                    {
+                                        dataParts[dataParts.Length - 1] = "0" + dataParts[dataParts.Length - 1];
+                                    }
                                     tmpAmount = string.Join(" ", dataParts);
-                                    //operation.OperationDate = DateTime.Parse(tmpAmount, new CultureInfo("en-US", true));
                                     operation.OperationDate = DateTime.Parse(tmpAmount);
                                     if (operation.OperationDate.AddMonths(1) > DateTime.Now)
                                     {
@@ -113,13 +146,67 @@ namespace STEAM_Crawler
                                     }
                                 }
                                 operation.OperationAmount = 0;
-                                //...
                             }
-                            double gunMaxPrice = Operations[0].OperationPrice;
-                            double gunMinPrice = Operations[0].OperationPrice;
-                            double gunAvgPrice = 0;
-                            int gunSalesPcs = 0;
-                            int daysCount = 1;
+                        }
+
+
+
+                        //using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
+                        //    {
+                        //        System.Threading.Thread.Sleep(10000); //to avoid microban
+                        //        string htmlCode = client.DownloadString(HTMLpath);
+                        //        string strStartCriteria = "var line1=[";
+                        //        string strEndCriteria = "g_timePriceHistoryEarliest";
+                        //        int startPosition = htmlCode.IndexOf(strStartCriteria);
+                        //        int endPosition = htmlCode.IndexOf(strEndCriteria, startPosition);
+                        //        int substrLength = endPosition - (strStartCriteria.Length + startPosition);
+                        //        string stat = htmlCode.Substring((startPosition + strStartCriteria.Length), substrLength);
+                        //        stat = stat.Replace("\t", "").Replace("\n", "");
+                        //        string[] cells = stat.Split(new string[] { "],[" }, StringSplitOptions.None);
+
+                        //        Array.Reverse(cells);
+
+                        //        int newArraySize = 30 * 24 > cells.Length ? cells.Length : 30 * 24;
+                        //        string[] lastMonthStat = new string[newArraySize];
+                        //        Array.Copy(cells, 0, lastMonthStat, 0, newArraySize);
+
+                        //        Operation operation = new Operation();
+                        //        foreach (string hourStat in lastMonthStat)
+                        //        {
+                        //            string[] oneHourStat = hourStat.Split(',');
+                        //            Double.TryParse(oneHourStat[1].Replace('.', ','), out operation.OperationPrice);
+                        //            string tmpAmount = oneHourStat[2];
+                        //            tmpAmount = tmpAmount.Substring(1, tmpAmount.IndexOf("\"", 2) - 1);
+                        //            int.TryParse(tmpAmount, out operation.OperationAmount);
+                        //            tmpAmount = oneHourStat[0];
+                        //            tmpAmount = tmpAmount.Substring(tmpAmount.IndexOf("\"") + 1, tmpAmount.IndexOf(":")) + "00";
+                        //            string[] dataParts = tmpAmount.Split(new string[] { " " }, StringSplitOptions.None);
+                        //            if (dataParts[dataParts.Length - 1].Length == 4)
+                        //            {
+                        //                dataParts[dataParts.Length - 1] = "0" + dataParts[dataParts.Length - 1];
+                        //            }
+                        //            tmpAmount = string.Join(" ", dataParts);
+                        //            operation.OperationDate = DateTime.Parse(tmpAmount);
+                        //            if (operation.OperationDate.AddMonths(1) > DateTime.Now)
+                        //            {
+                        //                Operations.Add(operation);
+                        //            }
+                        //        }
+                        //        operation.OperationAmount = 0;
+                        //        //...
+                        //    }
+                        double gunMaxPrice = 0;
+                        double gunMinPrice = 0;
+                        double gunAvgPrice = 0;
+                        int gunSalesPcs = 0;
+                        int daysCount = 1;
+                        if (Operations.Count != 0)
+                        {
+                            gunMaxPrice = Operations[0].OperationPrice;
+                            gunMinPrice = Operations[0].OperationPrice;
+                            gunAvgPrice = 0;
+                            gunSalesPcs = 0;
+                            daysCount = 1;
                             Operation prevOp = Operations[0];
                             foreach (var operation in Operations)
                             {
@@ -127,7 +214,6 @@ namespace STEAM_Crawler
                                     gunMaxPrice = operation.OperationPrice;
                                 if (operation.OperationPrice < gunMinPrice)
                                     gunMinPrice = operation.OperationPrice;
-
                                 if (prevOp.OperationDate.Day != operation.OperationDate.Day)
                                 {
                                     daysCount++;
@@ -135,33 +221,31 @@ namespace STEAM_Crawler
                                 }
                                 gunSalesPcs += operation.OperationAmount;
                             }
-                            gunAvgPrice = (gunMaxPrice + gunMinPrice) / 2;
-                            gunSalesPcs = gunSalesPcs / daysCount;
-
-                            DataRow myRow = dtDgv.NewRow();
-                            string isName = sName.Text;
-                            string link = result.GetAttribute("href");
-                            string iiQty = qtyItem.Text;
-                            myRow[0] = isName;
-                            myRow[1] = link;
-                            myRow[2] = iiQty;
-                            myRow[3] = gunMaxPrice;
-                            myRow[4] = gunMinPrice;
-                            myRow[5] = gunAvgPrice;
-                            myRow[6] = gunSalesPcs;
-
-                            dtDgv.Rows.Add(myRow);
-                            dtDgv.AcceptChanges();
-                            
-                            //source.ResetBindings(false);
-                            
-
                         }
-                        catch (Exception)
-                        {
+                        gunAvgPrice = (gunMaxPrice + gunMinPrice) / 2;
+                        gunSalesPcs = gunSalesPcs / daysCount;
 
-                            //throw;
-                        }
+                        DataRow myRow = dataTableForDataGrid.NewRow();
+                        string link = result.GetAttribute("href");
+                        myRow[0] = isName;
+                        myRow[1] = link;
+                        myRow[2] = iiQty;
+                        myRow[3] = gunMaxPrice;
+                        myRow[4] = gunMinPrice;
+                        myRow[5] = gunAvgPrice;
+                        myRow[6] = gunSalesPcs;
+
+                        dataTableForDataGrid.Rows.Add(myRow);
+                        Debug.WriteLine(myRow[0]);
+                        dataTableForDataGrid.AcceptChanges();
+
+
+                        //}
+                        //catch (Exception)
+                        //{
+
+                        //    //throw;
+                        //}
 
 
                     }
@@ -170,12 +254,12 @@ namespace STEAM_Crawler
                         e.Cancel = true;
                         break;
                     }
-                    e.Result = $"elem {rInd} of {results.Count}";
-                    rInd++;
+                    //e.Result = $"elem {rInd} of {results.Count}";
+                    resultIndex++;
                 }
-                e.Result = $"{iPage} of {PAGECOUNT} scanned";
+                //e.Result = $"{iPage} of {PAGECOUNT} scanned";
 
-                System.Threading.Thread.Sleep(500);
+                System.Threading.Thread.Sleep(10000); //to avoid microban
                 selector = By.Id("searchResults_btn_next");
                 ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
                 ww.Until(ExpectedConditions.ElementIsVisible(selector));
@@ -189,7 +273,6 @@ namespace STEAM_Crawler
             if (!e.Cancelled &&
                 e.Error == null)//Check if the worker has been canceled or if an error occurred
             {
-
                 dataGridView1.Update();
                 dataGridView1.Refresh();
 
@@ -207,6 +290,7 @@ namespace STEAM_Crawler
         }
         protected void myWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
+            dataTableForDataGrid.AcceptChanges();
             dataGridView1.Refresh();
             lblStatus.Text = string.Format("Counting number: {0}...", e.ProgressPercentage);
         }
@@ -216,14 +300,24 @@ namespace STEAM_Crawler
 
         private void btnStartBrowser_Click(object sender, EventArgs e)
         {
-            browser = new OpenQA.Selenium.Chrome.ChromeDriver();
-            browser.Navigate().GoToUrl(this.tbSteamInitialLink.Text);
-            WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
-            ww.Until(ExpectedConditions.ElementIsVisible(By.ClassName("market_paging_pagelink")));
-            List<IWebElement> Pages = browser.FindElements(By.ClassName("market_paging_pagelink")).ToList();
-            int.TryParse(Pages.Last().Text, out PAGECOUNT);
-            lblPagesCount.Text = PAGECOUNT.ToString();
-            lblStatus.Text = string.Empty;
+            try
+            {
+
+                browser = new OpenQA.Selenium.Chrome.ChromeDriver();
+                browser.Navigate().GoToUrl(this.tbSteamInitialLink.Text);
+                WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
+                ww.Until(ExpectedConditions.ElementIsVisible(By.ClassName("market_paging_pagelink")));
+                List<IWebElement> Pages = browser.FindElements(By.ClassName("market_paging_pagelink")).ToList();
+                int.TryParse(Pages.Last().Text, out PAGECOUNT);
+                lblPagesCount.Text = PAGECOUNT.ToString();
+                lblStatus.Text = string.Empty;
+            }
+            catch (Exception)
+            {
+
+                browser.Close();
+                Debug.WriteLine("Помилка відкриття браузера");
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -281,7 +375,7 @@ namespace STEAM_Crawler
             {
                 using (XLWorkbook wb = new XLWorkbook())
                 {
-                    DataTable dt = (DataTable)dtDgv;
+                    DataTable dt = (DataTable)dataTableForDataGrid;
                     wb.Worksheets.Add(dt, "ExportedData");
                     wb.SaveAs(sfd.FileName);
                     MessageBox.Show("Експорт завершений",
