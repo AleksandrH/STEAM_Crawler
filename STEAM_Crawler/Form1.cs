@@ -101,7 +101,7 @@ namespace STEAM_Crawler
                         }
 
                         List<Operation> Operations = new List<Operation>();
-                        System.Threading.Thread.Sleep(30000); //to avoid microban
+                        System.Threading.Thread.Sleep(20000); //to avoid microban
                         HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(HTMLpath);
                         using (Stream stream = request.GetResponse().GetResponseStream())
                         {
@@ -277,6 +277,7 @@ namespace STEAM_Crawler
                 dataGridView1.Refresh();
 
                 lblStatus.Text = "Done";
+                MessageBox.Show("Сканування завершено", "SteamCrawler", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else if (e.Cancelled)
             {
