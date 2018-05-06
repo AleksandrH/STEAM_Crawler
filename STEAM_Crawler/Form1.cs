@@ -40,6 +40,7 @@ namespace STEAM_Crawler
             dataTableForDataGrid.Columns.Add("ITEM_MIN_PRICE", typeof(double));
             dataTableForDataGrid.Columns.Add("ITEM_AVG_PRICE", typeof(double));
             dataTableForDataGrid.Columns.Add("ITEM_AVG_SALES", typeof(double));
+            dataTableForDataGrid.Columns.Add("ITEM_NAMEID", typeof(double));
             source.DataSource = dataTableForDataGrid;
             dataGridView1.DataSource = source;
 
@@ -75,6 +76,7 @@ namespace STEAM_Crawler
                         string isName = string.Empty;
                         string iiQty = string.Empty;
                         string HTMLpath = result.GetAttribute("href").ToString();
+                        string ITEM_NAMEID = string.Empty;
                         if (HTMLpath == string.Empty)
                         {
                             break;
@@ -97,7 +99,6 @@ namespace STEAM_Crawler
                             {
                                 Debug.WriteLine(eX.Message);
                             }
-
                         }
 
                         List<Operation> Operations = new List<Operation>();
@@ -108,12 +109,23 @@ namespace STEAM_Crawler
                             using (StreamReader reader = new StreamReader(stream))
                             {
                                 string htmlCode = reader.ReadToEnd();
-                                string strStartCriteria = "var line1=[";
-                                string strEndCriteria = "g_timePriceHistoryEarliest";
+
+                                //Market_LoadOrderSpread(7178002);	// initial load
+                                string strStartCriteria = "Market_LoadOrderSpread(";
+                                string strEndCriteria = ");	// initial load";
                                 int startPosition = htmlCode.IndexOf(strStartCriteria);
                                 int endPosition = htmlCode.IndexOf(strEndCriteria, startPosition);
                                 int substrLength = endPosition - (strStartCriteria.Length + startPosition);
                                 string stat = htmlCode.Substring((startPosition + strStartCriteria.Length), substrLength);
+                                ITEM_NAMEID = stat;
+
+
+                                strStartCriteria = "var line1=[";
+                                strEndCriteria = "g_timePriceHistoryEarliest";
+                                startPosition = htmlCode.IndexOf(strStartCriteria);
+                                endPosition = htmlCode.IndexOf(strEndCriteria, startPosition);
+                                substrLength = endPosition - (strStartCriteria.Length + startPosition);
+                                stat = htmlCode.Substring((startPosition + strStartCriteria.Length), substrLength);
                                 stat = stat.Replace("\t", "").Replace("\n", "");
                                 string[] cells = stat.Split(new string[] { "],[" }, StringSplitOptions.None);
 
@@ -150,51 +162,6 @@ namespace STEAM_Crawler
                         }
 
 
-
-                        //using (WebClient client = new WebClient()) // WebClient class inherits IDisposable
-                        //    {
-                        //        System.Threading.Thread.Sleep(10000); //to avoid microban
-                        //        string htmlCode = client.DownloadString(HTMLpath);
-                        //        string strStartCriteria = "var line1=[";
-                        //        string strEndCriteria = "g_timePriceHistoryEarliest";
-                        //        int startPosition = htmlCode.IndexOf(strStartCriteria);
-                        //        int endPosition = htmlCode.IndexOf(strEndCriteria, startPosition);
-                        //        int substrLength = endPosition - (strStartCriteria.Length + startPosition);
-                        //        string stat = htmlCode.Substring((startPosition + strStartCriteria.Length), substrLength);
-                        //        stat = stat.Replace("\t", "").Replace("\n", "");
-                        //        string[] cells = stat.Split(new string[] { "],[" }, StringSplitOptions.None);
-
-                        //        Array.Reverse(cells);
-
-                        //        int newArraySize = 30 * 24 > cells.Length ? cells.Length : 30 * 24;
-                        //        string[] lastMonthStat = new string[newArraySize];
-                        //        Array.Copy(cells, 0, lastMonthStat, 0, newArraySize);
-
-                        //        Operation operation = new Operation();
-                        //        foreach (string hourStat in lastMonthStat)
-                        //        {
-                        //            string[] oneHourStat = hourStat.Split(',');
-                        //            Double.TryParse(oneHourStat[1].Replace('.', ','), out operation.OperationPrice);
-                        //            string tmpAmount = oneHourStat[2];
-                        //            tmpAmount = tmpAmount.Substring(1, tmpAmount.IndexOf("\"", 2) - 1);
-                        //            int.TryParse(tmpAmount, out operation.OperationAmount);
-                        //            tmpAmount = oneHourStat[0];
-                        //            tmpAmount = tmpAmount.Substring(tmpAmount.IndexOf("\"") + 1, tmpAmount.IndexOf(":")) + "00";
-                        //            string[] dataParts = tmpAmount.Split(new string[] { " " }, StringSplitOptions.None);
-                        //            if (dataParts[dataParts.Length - 1].Length == 4)
-                        //            {
-                        //                dataParts[dataParts.Length - 1] = "0" + dataParts[dataParts.Length - 1];
-                        //            }
-                        //            tmpAmount = string.Join(" ", dataParts);
-                        //            operation.OperationDate = DateTime.Parse(tmpAmount);
-                        //            if (operation.OperationDate.AddMonths(1) > DateTime.Now)
-                        //            {
-                        //                Operations.Add(operation);
-                        //            }
-                        //        }
-                        //        operation.OperationAmount = 0;
-                        //        //...
-                        //    }
                         double gunMaxPrice = 0;
                         double gunMinPrice = 0;
                         double gunAvgPrice = 0;
@@ -234,6 +201,7 @@ namespace STEAM_Crawler
                         myRow[4] = gunMinPrice;
                         myRow[5] = gunAvgPrice;
                         myRow[6] = gunSalesPcs;
+                        myRow[7] = Convert.ToDouble(ITEM_NAMEID);
 
                         dataTableForDataGrid.Rows.Add(myRow);
                         Debug.WriteLine(myRow[0]);
@@ -254,11 +222,8 @@ namespace STEAM_Crawler
                         e.Cancel = true;
                         break;
                     }
-                    //e.Result = $"elem {rInd} of {results.Count}";
                     resultIndex++;
                 }
-                //e.Result = $"{iPage} of {PAGECOUNT} scanned";
-
                 System.Threading.Thread.Sleep(10000); //to avoid microban
                 selector = By.Id("searchResults_btn_next");
                 ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
