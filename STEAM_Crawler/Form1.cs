@@ -1,6 +1,7 @@
 ﻿using ClosedXML.Excel;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
+using SeleniumExtras.WaitHelpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,7 +14,7 @@ using System.Windows.Forms;
 
 namespace STEAM_Crawler
 {
-    public partial class Form1 : Form
+    public partial class frmMain : Form
     {
         IWebDriver browser;
         public static int PAGECOUNT;
@@ -21,7 +22,7 @@ namespace STEAM_Crawler
         public static BindingSource source = new BindingSource();
         public BackgroundWorker myWorker = new BackgroundWorker();
 
-        public Form1()
+        public frmMain()
         {
             InitializeComponent();
 
@@ -64,10 +65,9 @@ namespace STEAM_Crawler
                 // Один рядок результату - одна позиція
                 var selector = By.ClassName("market_listing_row_link");
 
-
-                
+       
                 WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(15));
-                ww.Until(ExpectedConditions.ElementIsVisible(selector));
+                var element = ww.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(selector));
 
                 // Пошук всіх позицій із поточної сторінки
                 List<IWebElement> results =
@@ -342,7 +342,7 @@ namespace STEAM_Crawler
                 // емуляція переходу на наступний аркуш з результатами
                 selector = By.Id("searchResults_btn_next");
                 ww = new WebDriverWait(browser, TimeSpan.FromSeconds(10));
-                ww.Until(ExpectedConditions.ElementIsVisible(selector));
+                ww.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(selector));
                 browser.FindElement(selector).Click();
 
                 // номер опрацьованої сторінки відбразити в статус-барі. 
@@ -406,13 +406,13 @@ namespace STEAM_Crawler
                 try
                 {
                     // 1 сторінка результатів
-                    ww.Until(ExpectedConditions.ElementIsVisible(By.ClassName("market_paging_summary ellipsis")));
+                    ww.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.ClassName("market_paging_summary ellipsis")));
                     PAGECOUNT = 1;
                 }
                 catch
                 {
                     // Результатів більше 1 сторінки
-                    ww.Until(ExpectedConditions.ElementIsVisible(By.ClassName("market_paging_pagelink")));
+                    ww.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.ClassName("market_paging_pagelink")));
                     List<IWebElement> Pages = browser.FindElements(By.ClassName("market_paging_pagelink")).ToList();
                     int.TryParse(Pages.Last().Text, out PAGECOUNT);
                 }

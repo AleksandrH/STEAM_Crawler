@@ -1,6 +1,6 @@
 ﻿namespace STEAM_Crawler
 {
-    partial class Form1
+    partial class frmMain
     {
         /// <summary>
         /// Обязательная переменная конструктора.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             this.tbSteamInitialLink = new System.Windows.Forms.TextBox();
             this.btnStartBrowser = new System.Windows.Forms.Button();
             this.btnStopCrawler = new System.Windows.Forms.Button();
@@ -50,18 +50,20 @@
             // 
             this.tbSteamInitialLink.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tbSteamInitialLink.Location = new System.Drawing.Point(30, 45);
+            this.tbSteamInitialLink.Location = new System.Drawing.Point(12, 25);
+            this.tbSteamInitialLink.Multiline = true;
             this.tbSteamInitialLink.Name = "tbSteamInitialLink";
-            this.tbSteamInitialLink.Size = new System.Drawing.Size(970, 20);
+            this.tbSteamInitialLink.Size = new System.Drawing.Size(1006, 43);
             this.tbSteamInitialLink.TabIndex = 0;
             this.tbSteamInitialLink.Text = resources.GetString("tbSteamInitialLink.Text");
             // 
             // btnStartBrowser
             // 
             this.btnStartBrowser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnStartBrowser.Location = new System.Drawing.Point(682, 71);
+            this.btnStartBrowser.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.btnStartBrowser.Location = new System.Drawing.Point(751, 91);
             this.btnStartBrowser.Name = "btnStartBrowser";
-            this.btnStartBrowser.Size = new System.Drawing.Size(75, 23);
+            this.btnStartBrowser.Size = new System.Drawing.Size(85, 23);
             this.btnStartBrowser.TabIndex = 1;
             this.btnStartBrowser.Text = "Open Browser";
             this.btnStartBrowser.UseVisualStyleBackColor = true;
@@ -70,9 +72,10 @@
             // btnStopCrawler
             // 
             this.btnStopCrawler.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnStopCrawler.Location = new System.Drawing.Point(943, 390);
+            this.btnStopCrawler.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.btnStopCrawler.Location = new System.Drawing.Point(915, 390);
             this.btnStopCrawler.Name = "btnStopCrawler";
-            this.btnStopCrawler.Size = new System.Drawing.Size(75, 23);
+            this.btnStopCrawler.Size = new System.Drawing.Size(103, 23);
             this.btnStopCrawler.TabIndex = 2;
             this.btnStopCrawler.Text = "exit browser";
             this.btnStopCrawler.UseVisualStyleBackColor = true;
@@ -81,9 +84,10 @@
             // lblPagesCount
             // 
             this.lblPagesCount.AutoSize = true;
-            this.lblPagesCount.Location = new System.Drawing.Point(118, 71);
+            this.lblPagesCount.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lblPagesCount.Location = new System.Drawing.Point(109, 71);
             this.lblPagesCount.Name = "lblPagesCount";
-            this.lblPagesCount.Size = new System.Drawing.Size(13, 13);
+            this.lblPagesCount.Size = new System.Drawing.Size(14, 16);
             this.lblPagesCount.TabIndex = 3;
             this.lblPagesCount.Text = "0";
             // 
@@ -95,14 +99,15 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Location = new System.Drawing.Point(3, 3);
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(1003, 224);
+            this.dataGridView1.Size = new System.Drawing.Size(1003, 249);
             this.dataGridView1.TabIndex = 5;
             // 
             // btnReadList
             // 
-            this.btnReadList.Location = new System.Drawing.Point(763, 71);
+            this.btnReadList.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.btnReadList.Location = new System.Drawing.Point(842, 91);
             this.btnReadList.Name = "btnReadList";
-            this.btnReadList.Size = new System.Drawing.Size(75, 23);
+            this.btnReadList.Size = new System.Drawing.Size(85, 23);
             this.btnReadList.TabIndex = 6;
             this.btnReadList.Text = "Get Items";
             this.btnReadList.UseVisualStyleBackColor = true;
@@ -110,9 +115,10 @@
             // 
             // btnSaveXLS
             // 
-            this.btnSaveXLS.Location = new System.Drawing.Point(844, 71);
+            this.btnSaveXLS.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.btnSaveXLS.Location = new System.Drawing.Point(933, 91);
             this.btnSaveXLS.Name = "btnSaveXLS";
-            this.btnSaveXLS.Size = new System.Drawing.Size(75, 23);
+            this.btnSaveXLS.Size = new System.Drawing.Size(85, 23);
             this.btnSaveXLS.TabIndex = 7;
             this.btnSaveXLS.Text = "Save XLSX";
             this.btnSaveXLS.UseVisualStyleBackColor = true;
@@ -124,9 +130,9 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.Controls.Add(this.dataGridView1);
-            this.panel1.Location = new System.Drawing.Point(12, 154);
+            this.panel1.Location = new System.Drawing.Point(12, 129);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1009, 230);
+            this.panel1.Size = new System.Drawing.Size(1009, 255);
             this.panel1.TabIndex = 8;
             // 
             // statusStrip1
@@ -147,22 +153,24 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(27, 71);
+            this.label1.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label1.Location = new System.Drawing.Point(12, 71);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(85, 13);
+            this.label1.Size = new System.Drawing.Size(96, 16);
             this.label1.TabIndex = 10;
             this.label1.Text = "Pages Founded:";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(27, 29);
+            this.label2.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label2.Location = new System.Drawing.Point(12, 9);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(55, 13);
+            this.label2.Size = new System.Drawing.Size(58, 16);
             this.label2.TabIndex = 11;
             this.label2.Text = "Start Link:";
             // 
-            // Form1
+            // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -178,7 +186,7 @@
             this.Controls.Add(this.tbSteamInitialLink);
             this.Controls.Add(this.panel1);
             this.MinimumSize = new System.Drawing.Size(600, 300);
-            this.Name = "Form1";
+            this.Name = "frmMain";
             this.Text = "STEAM CRAWLER";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.panel1.ResumeLayout(false);
