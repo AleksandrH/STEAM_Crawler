@@ -118,9 +118,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="tbSteamInitialLink.Text" xml:space="preserve">
-    <value>https://steamcommunity.com/market/search?q=&amp;category_730_ItemSet%5B%5D=any&amp;category_730_ProPlayer%5B%5D=any&amp;category_730_StickerCapsule%5B%5D=any&amp;category_730_TournamentTeam%5B%5D=any&amp;category_730_Weapon%5B%5D=tag_weapon_ak47&amp;category_730_Type%5B%5D=tag_CSGO_Type_Rifle&amp;appid=730#p2_name_asc</value>
+    <value>https://steamcommunity.com/market/search?q=&amp;category_730_ItemSet%5B%5D=tag_set_nuke_2&amp;category_730_ProPlayer%5B%5D=any&amp;category_730_StickerCapsule%5B%5D=any&amp;category_730_TournamentTeam%5B%5D=any&amp;category_730_Weapon%5B%5D=tag_weapon_awp&amp;appid=730</value>
   </data>
   <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
+  </metadata>
+  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>25</value>
   </metadata>
 </root>
