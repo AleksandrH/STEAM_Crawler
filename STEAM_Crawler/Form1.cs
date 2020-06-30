@@ -143,7 +143,7 @@ namespace STEAM_Crawler
                             // операції з позицією
                             List<Operation> Operations = new List<Operation>();
 
-                          
+
 
                             // прочитати сторінку детальними даними
                             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(HTMLpath);
@@ -362,15 +362,19 @@ namespace STEAM_Crawler
         private void SaveItemInformation(string htmlCode, string nameAtBrowser)
         {
             string FilePath = "D:\\LotsDetails.xlsx";
-            using (XLWorkbook wb = new XLWorkbook(FilePath))
+
+            using (var wb = new XLWorkbook(FilePath))
             {
 
                 HtmlAgilityPack.HtmlDocument htmlDoc = new HtmlAgilityPack.HtmlDocument();
                 htmlDoc.LoadHtml(htmlCode);
 
+                // останній тег script сторінки містить потрібну інформацію
                 var script = htmlDoc.DocumentNode.Descendants()
                                  .Where(n => n.Name == "script")
                                  .Last().InnerText;
+
+                // g_rgAssets - JSON основної інформації
                 Regex patternAssets = new Regex(@"var g_rgAssets = (?<myJSON>.*);");
                 Match matchAssets = patternAssets.Match(script);
                 var JSONAssets = matchAssets.Groups["myJSON"].Value;
@@ -399,66 +403,77 @@ namespace STEAM_Crawler
                 bool hasSheetName = false;
                 for (int i = 0; i < wb.Worksheets.Count; i++)
                 {
-                    if (wb.Worksheet(i+1).Name == sheetName) hasSheetName = true;
+                    if (wb.Worksheet(i + 1).Name == sheetName) hasSheetName = true;
                 }
                 if (hasSheetName)
                 {
-                    wb.SaveAs("LotsDetails.xlsx");
+                    wb.SaveAs(FilePath);
                     return;
                 }
 
                 var ws = wb.Worksheets.Add(sheetName);
+               
+                    ws.Cell("A1").Value = itemName;
+                    ws.Cell("C1").Value = descriptor;
+                    ws.Cell("E1").Value = itemMarketName;
+                    ws.Cell("G1").Value = nameAtBrowser;
 
-                ws.Cell("A1").Value = itemName;
-                ws.Cell("C1").Value = descriptor;
-                ws.Cell("E1").Value = itemMarketName;
-                ws.Cell("G1").Value = nameAtBrowser;
+                    ws.Cell("A3").Value = "Date/Time";
+                    ws.Cell("B3").Value = "Amount";
+                    ws.Cell("C3").Value = "Price";
 
-                ws.Cell("A3").Value = "Date/Time";
-                ws.Cell("B3").Value = "Amount";
-                ws.Cell("C3").Value = "Price";
-                int RowIndex = 4;
-
-
-
-                Regex pattern = new Regex(@"var line1=(?<myJAGGED>.*);");
-                Match match = pattern.Match(script);
-                var data = match.Groups["myJAGGED"].Value;
-                
+                    int RowIndex = 4;
 
 
-                string[][] values =
-                data.Trim(']', '[').Split(new[] { "],[" }, StringSplitOptions.RemoveEmptyEntries)
-                       .Select(t => t.Split(',').Select(s => s.Replace("\"", "")).ToArray())
-                       .ToArray();
+
+                    Regex pattern = new Regex(@"var line1=(?<myJAGGED>.*);");
+                    Match match = pattern.Match(script);
+                    var data = match.Groups["myJAGGED"].Value;
 
 
-                List<Operation> operations = new List<Operation>();
-                var g_timePriceHistoryEarliest = new DateTime();
-                var g_timePriceHistoryLatest = new DateTime();
-                g_timePriceHistoryEarliest = DateTime.ParseExact(values[0][0],
-                                      "MMM dd yyyy HH: +0",
-                                      CultureInfo.InvariantCulture);
-                g_timePriceHistoryLatest = DateTime.ParseExact(values[values.Length - 1][0],
-                                      "MMM dd yyyy HH: +0",
-                                      CultureInfo.InvariantCulture);
-                //Console.WriteLine($"{g_timePriceHistoryEarliest} : {g_timePriceHistoryLatest}\n");
-                for (int i = 0; i < values.Length; i++)
-                {
-                    var d = values[i][0];
 
-                    var operationDate = DateTime.ParseExact(d,
-                                      "MMM dd yyyy HH: +0",
-                                      CultureInfo.InvariantCulture);
-                    if (g_timePriceHistoryLatest.AddMonths(-1) < operationDate)
+                    string[][] values =
+                    data.Trim(']', '[').Split(new[] { "],[" }, StringSplitOptions.RemoveEmptyEntries)
+                           .Select(t => t.Split(',').Select(s => s.Replace("\"", "")).ToArray())
+                           .ToArray();
+
+
+                    //  List<Operation> operations = new List<Operation>();
+                    var g_timePriceHistoryEarliest = new DateTime();
+                    var g_timePriceHistoryLatest = new DateTime();
+                    g_timePriceHistoryEarliest = DateTime.ParseExact(values[0][0],
+                                          "MMM dd yyyy HH: +0",
+                                          CultureInfo.InvariantCulture);
+                    g_timePriceHistoryLatest = DateTime.ParseExact(values[values.Length - 1][0],
+                                          "MMM dd yyyy HH: +0",
+                                          CultureInfo.InvariantCulture);
+                    //Console.WriteLine($"{g_timePriceHistoryEarliest} : {g_timePriceHistoryLatest}\n");
+                    for (int i = 0; i < values.Length; i++)
                     {
-                        //Console.WriteLine($"{operationDate:yyyy.MM.dd HH:mm}: Price {values[i][1]} ; Amount {values[i][2]}");
-                        ws.Cell(RowIndex, "A").Value = operationDate.ToString("yyyy.MM.dd HH: mm");
-                        ws.Cell(RowIndex, "B").Value = values[i][2];
-                        ws.Cell(RowIndex, "C").Value = values[i][1];
-                        RowIndex++;
+                        // рядок даних
+                        var d = values[i][0];
+
+                        var operationDate = DateTime.ParseExact(d,
+                                          "MMM dd yyyy HH: +0",
+                                          CultureInfo.InvariantCulture);
+
+                        if (g_timePriceHistoryLatest.AddMonths(-1) < operationDate)
+                        {
+                            //Console.WriteLine($"{operationDate:yyyy.MM.dd HH:mm}: Price {values[i][1]} ; Amount {values[i][2]}");
+                            
+                        // дата операції
+                            ws.Cell(RowIndex, "A").Value = operationDate.ToString("yyyy.MM.dd HH: mm");
+
+                            // Ціна
+                            ws.Cell(RowIndex, "C").Value = values[i][1];
+
+                            // Кількість
+                            ws.Cell(RowIndex, "B").Value = values[i][2];
+
+                            RowIndex++;
+                        }
                     }
-                }
+                
                 wb.SaveAs(FilePath);
             }
 
@@ -467,7 +482,7 @@ namespace STEAM_Crawler
         }
 
 
-        
+
 
         protected void myWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -478,6 +493,8 @@ namespace STEAM_Crawler
                 dataGridView1.Refresh();
 
                 lblStatus.Text = "Done";
+                browser.Quit();
+
                 MessageBox.Show("Сканування завершено", "SteamCrawler", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else if (e.Cancelled)
@@ -621,18 +638,6 @@ namespace STEAM_Crawler
 
         private void ItemOperationsSaving(string FilePath, string HtmlSource)
         {
-            #region Очистити ItemName від зайвих символів
-
-            #endregion
-
-
-
-
-
-
-
-
-
 
             XLWorkbook wb;
             if (!File.Exists(FilePath))
@@ -683,6 +688,13 @@ namespace STEAM_Crawler
         {
             if (!myWorker.IsBusy)
                 myWorker.CancelAsync();
+        }
+
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            dataGridView1.Rows.Clear();
+            dataGridView1.Refresh();
         }
     }
 }

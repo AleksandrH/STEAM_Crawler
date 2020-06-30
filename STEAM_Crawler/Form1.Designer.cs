@@ -46,6 +46,7 @@
             this.ItemsMinimum = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.Cancel = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.panel1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -226,11 +227,24 @@
             this.Cancel.UseVisualStyleBackColor = true;
             this.Cancel.Click += new System.EventHandler(this.Cancel_Click);
             // 
+            // button1
+            // 
+            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.button1.Font = new System.Drawing.Font("Century Gothic", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.button1.Location = new System.Drawing.Point(12, 386);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(125, 23);
+            this.button1.TabIndex = 18;
+            this.button1.Text = "Clear datagrid";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click_1);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1033, 434);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.Cancel);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.ItemsMinimum);
@@ -278,6 +292,7 @@
         private System.Windows.Forms.TextBox ItemsMinimum;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button Cancel;
+        private System.Windows.Forms.Button button1;
     }
 }
 
