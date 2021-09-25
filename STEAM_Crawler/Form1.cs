@@ -69,9 +69,19 @@ namespace STEAM_Crawler
                 // Один рядок результату - одна позиція
                 var selector = By.ClassName("market_listing_row_link");
 
+                try
+                {
+                    WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(15));
+                    var element = ww.Until(ExpectedConditions.ElementIsVisible(selector));
+                }
+                catch (Exception eX)
+                {
+                    // номер опрацьованої сторінки відбразити в статус-барі. 
+                    Debug.WriteLine(eX.Message);
+                    sendingWorker.ReportProgress(iPage);
+                    break;
+                }
 
-                WebDriverWait ww = new WebDriverWait(browser, TimeSpan.FromSeconds(15));
-                var element = ww.Until(ExpectedConditions.ElementIsVisible(selector));
 
                 // Пошук всіх позицій із поточної сторінки
                 List<IWebElement> results =
@@ -362,6 +372,7 @@ namespace STEAM_Crawler
         private void SaveItemInformation(string htmlCode, string nameAtBrowser)
         {
             string FilePath = "D:\\LotsDetails.xlsx";
+            CreateNewFileIfDoesntExists(FilePath);
 
             using (var wb = new XLWorkbook(FilePath))
             {
@@ -518,7 +529,14 @@ namespace STEAM_Crawler
 
             dataTableForDataGrid.AcceptChanges();
             dataGridView1.Refresh();
-            IntermediateSaving("D:\\FileName_LIST.xlsx");
+            string FilePath = "D:\\LotsDetails"+ DateTime.Now.ToString("yyyyMMdd") +".xlsx";
+            CreateNewFileIfDoesntExists(FilePath);
+            //using (var wb = new XLWorkbook(FilePath))
+            //{
+            //    wb.SaveAs(FilePath);
+            //}
+            //IntermediateSaving("D:\\FileName_LIST.xlsx");
+            IntermediateSaving(FilePath);
             lblStatus.Text = string.Format("Counting number: {0}...", e.ProgressPercentage);
         }
 
@@ -576,11 +594,12 @@ namespace STEAM_Crawler
             catch (Exception ex)
             {
                 // Помилка браузера
-                browser.Close();
+                
                 MessageBox.Show("Помилка відкриття браузера\n" + ex.Message,
                                 "Ініціалізація браузера",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Debug.WriteLine("Помилка відкриття браузера\n" + ex.Message);
+                browser.Close();
             }
         }
 
@@ -636,20 +655,13 @@ namespace STEAM_Crawler
 
         }
 
-        private void ItemOperationsSaving(string FilePath, string HtmlSource)
-        {
 
+        private void CreateNewFileIfDoesntExists(string FilePath)
+        {
             XLWorkbook wb;
             if (!File.Exists(FilePath))
             {
                 wb = new XLWorkbook();
-            }
-            else
-            {
-                wb = new XLWorkbook(FilePath);
-            }
-            using (wb)
-            {
                 wb.Worksheets.Add();
                 wb.SaveAs(FilePath);
             }
